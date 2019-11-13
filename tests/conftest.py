@@ -57,7 +57,7 @@ def setup_schema(connection):
 
 @pytest.fixture(scope='session')
 def env():
-    #os.environ['PGDATABASE']='pgseq_migration_noeddi'
+    os.environ['PGDATABASE']='pgseq_migration_noeddi'
     conn = get_connection()
     setup_schema(conn)
     conn.commit()

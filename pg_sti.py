@@ -14,9 +14,9 @@ def is_alive():
     return curs.fetchone()
 
 
-def _print_affected(with_sequences=True, with_identity=False):
+def _get_affected_text(with_sequences=True, with_identity=False):
     for row in _get_affected(with_sequences, with_identity):
-        yield 'Table %s.%s Column %s  Is_Identity %s' % (row['schema'], row['table'], row['column'], row['is_identity'])
+        yield '%-10s %-32s  (Is_Identity %-3s)' % (row['column'], "%s.%s"%(row['schema'], row['table']), row['is_identity'])
 
 
 def _get_affected(with_sequences=True, with_identity=False):
@@ -27,7 +27,7 @@ def _get_affected(with_sequences=True, with_identity=False):
                 table_name      as table, 
                 column_name     as column, 
                 is_identity     as is_identity,
-                column_default 
+                substring(column_default,10, length(column_default)-12-9) as column_default 
             FROM information_schema.columns 
                 WHERE ( is_identity = 'YES'  and %s )
                 OR    ( column_default LIKE 'nextval(%%::regclass)' AND %s );''' % ('True' if with_identity else 'False', 'True' if with_sequences else 'False'))
@@ -39,7 +39,7 @@ def _get_affected(with_sequences=True, with_identity=False):
             for inner in entries:
                 if outer['is_identity'] == 'NO' and inner['column_default'] == outer['column_default'] and (
                         inner['schema'] != outer['schema'] or inner['table'] != outer['table'] or inner['column'] != outer['column']):
-                        print("Sequences with multiple owners not yet supported", file=sys.stderr)
+                        print("Sequences with multiple owners not yet supported %s via %s.%s"%( outer['column_default'], outer['schema'],outer['table'] ), file=sys.stderr)
                         is_valid = False
                         break
             if is_valid:
@@ -148,11 +148,11 @@ def main():
     args = parser.parse_args()
     if args.method.lower() == 'upgrade':
         if args.list:
-            for line in _print_affected(with_sequences=True, with_identity=False):
+            for line in _get_affected_text(with_sequences=True, with_identity=False):
                 print(line)
         else:
             for x in _get_affected(with_sequences=True, with_identity=False):
-                print("Upgrading %s.%s.%s" %
+                print("-- %s.%s.%s" %
                       (x['schema'], x['table'], x['column']))
                 _migrate_to_identity(
                     x['schema'], x['table'], x['column'], sql_only=args.sql)
