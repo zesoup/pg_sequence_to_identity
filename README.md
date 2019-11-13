@@ -6,6 +6,7 @@ Roadmap:
 * Support Limiters ( Upgrade by Regex/Glob/(White/Black)list )
 * Support Inheritance / Multiple-Owners of a Sequence
 * Support _the-usual_ arguments for db-centric tools like host/port/database ( environment-only atm )
+* Ensure there are no sql-injections.
 
 Requirements: psycopg2
 
