@@ -10,6 +10,12 @@ Roadmap:
 
 Requirements: psycopg2
 
+Installation:
+
+```
+python3 setup.py install
+
+```
 
 ```
 usage: pg_sti [-h] [--list] [--sql] [--debug] method
