@@ -25,7 +25,7 @@ setup(
     tests_requires=tests_requires,
     entry_points={
          'console_scripts': [
-             'pg_sti = pg_sti:main',
+             'pg_sti = pg_sequence_to_identity.pg_sti:main',
          ],
      },
 )
