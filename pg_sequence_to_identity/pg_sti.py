@@ -113,7 +113,7 @@ $F$
     begin
         select last_value+1 into new_max FROM %s ;
         SELECT pg_get_serial_sequence( '"%s"."%s"', '%s' ) into new_sequence;
-
+        DROP SEQUENCE %s;
         -- It seems wise to keep the last counter of the sequence. For this reason we're logging out to
         -- postgresql's logfile.
 
@@ -122,17 +122,13 @@ $F$
     end
 $F$;""" % (seqname,
            schema, table, column,
+           seqname,
            schema, table, column, '%',
            '%s', '%s')
 
     print_if_sql_only(SQL)
     exec_if_not_sql_only(SQL)
 
-    SQL = """DROP SEQUENCE %s ;""" % (seqname)
-    print_if_sql_only(SQL)
-    exec_if_not_sql_only(SQL)
-    # DROP SEQUENCE
-    # RELEASE EXCLUSIVE // COMMIT
 
     if not sql_only:
         connection.commit()
