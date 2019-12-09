@@ -8,12 +8,13 @@ def test_get_aliveness_and_reset(env):
 
 def test_listing(env):
     """ Testcase is currently defined to contain 6 - relevant Columns"""
+
     assert len([x for x in pg_sti._get_affected_text(with_sequences=True,  with_identity=True )]) == 6
     assert len([x for x in pg_sti._get_affected_text(with_sequences=True,  with_identity=False)]) == 4
     assert len([x for x in pg_sti._get_affected_text(with_sequences=False, with_identity=True)]) == 2
     assert len([x for x in pg_sti._get_affected_text(with_sequences=True, with_identity=True)]) == len([x for x in pg_sti._get_affected(with_sequences=True, with_identity=True)])
-    
-    
+
+
 
 def test_upgrade(env):
     """ 
@@ -27,3 +28,10 @@ def test_upgrade(env):
     assert len([x for x in pg_sti._get_affected_text(with_sequences=False,  with_identity=True )]) == 6
 
 
+def test_fixseq(env):
+    """
+    """
+    pg_sti._fix_sequences()
+    
+    assert(1==1)
+    

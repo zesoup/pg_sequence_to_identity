@@ -3,6 +3,7 @@ import psycopg2
 import psycopg2.extras
 import sys
 
+
 def get_connection():
     return psycopg2.connect("")
 
@@ -16,40 +17,55 @@ def is_alive():
 
 def _get_affected_text(with_sequences=True, with_identity=False):
     for row in _get_affected(with_sequences, with_identity):
-        yield '%-10s %-32s  (Is_Identity %-3s)' % (row['column'], "%s.%s"%(row['schema'], row['table']), row['is_identity'])
+        yield '%-10s %-32s  (Is_Identity %-3s)' % (row['column'], "%s.%s" % (row['schema'], row['table']), row['is_identity'])
+
+
+def _fix_sequences():
+    connection = get_connection()
+    with connection.cursor(cursor_factory=psycopg2.extras.DictCursor) as curs:
+        for row in _get_affected(with_identity=True, with_sequences=True):
+            print("%s needs fixing" % (row['table'],))
+            curs.execute("""SELECT coalesce(0, max( "%s" ) ), pg_get_serial_sequence( '%s', '%s' ) FROM "%s"."%s" """
+                % (row['column'],
+                '"%s"."%s"' % (row['schema'], row['table']), row['column'],
+                row['schema'],row['table'])
+                )
+            _max, _sequencename = curs.fetchone()
+            print("alter sequence %s RESTART %s;" % (_sequencename, _max) )
 
 
 def _get_affected(with_sequences=True, with_identity=False):
-    connection = get_connection()
+    connection=get_connection()
     with connection.cursor(cursor_factory=psycopg2.extras.DictCursor) as curs:
         curs.execute('''
         select  table_schema    as schema,
-                table_name      as table, 
-                column_name     as column, 
+                table_name      as table,
+                column_name     as column,
                 is_identity     as is_identity,
-                substring(column_default,10, length(column_default)-12-9) as column_default 
-            FROM information_schema.columns 
+                substring(column_default,10, length(column_default)-12-9) as column_default
+            FROM information_schema.columns
                 WHERE ( is_identity = 'YES'  and %s )
                 OR    ( column_default LIKE 'nextval(%%::regclass)' AND %s );''' % ('True' if with_identity else 'False', 'True' if with_sequences else 'False'))
-        entries = []
+        entries=[]
         for row in curs.fetchall():
             entries.append(row)
         for outer in entries:
-            is_valid = True
+            is_valid=True
             for inner in entries:
                 if outer['is_identity'] == 'NO' and inner['column_default'] == outer['column_default'] and (
                         inner['schema'] != outer['schema'] or inner['table'] != outer['table'] or inner['column'] != outer['column']):
-                        print("Sequences with multiple owners not yet supported %s via %s.%s"%( outer['column_default'], outer['schema'],outer['table'] ), file=sys.stderr)
-                        is_valid = False
+                        print("Sequences with multiple owners not yet supported %s via %s.%s" % (
+                            outer['column_default'], outer['schema'], outer['table']), file=sys.stderr)
+                        is_valid=False
                         break
             if is_valid:
                 yield outer
 
 
 def _migrate_to_identity(schema, table, column, sql_only=False):
-    connection = get_connection()
+    connection=get_connection()
     connection.set_session(autocommit=False)
-    cursor = connection.cursor(cursor_factory=psycopg2.extras.DictCursor)
+    cursor=connection.cursor(cursor_factory=psycopg2.extras.DictCursor)
 
     def print_if_sql_only(SQL):
         if sql_only:
@@ -71,11 +87,11 @@ def _migrate_to_identity(schema, table, column, sql_only=False):
     print_if_sql_only('BEGIN;')
 
     # LOCK TABLE IN ACCESS EXCLUSIVE MODE
-    SQL = 'LOCK TABLE "%s"."%s" IN ACCESS EXCLUSIVE MODE;' % (schema, table)
+    SQL='LOCK TABLE "%s"."%s" IN ACCESS EXCLUSIVE MODE;' % (schema, table)
     print_if_sql_only(SQL)
     exec_if_not_sql_only(SQL)
 
-    SQL = """ 
+    SQL="""
     SELECT a.attname,
     pg_catalog.format_type(a.atttypid, a.atttypmod),
     (SELECT substring(pg_catalog.pg_get_expr(d.adbin, d.adrelid) for 128) default_value
@@ -87,25 +103,25 @@ def _migrate_to_identity(schema, table, column, sql_only=False):
     ORDER BY a.attnum;
     """ % (schema, table, column)
     cursor.execute(SQL)
-    seqname = cursor.fetchone()['default_value']
-    seqname = seqname[9:-12]  # There should be a prettier way
+    seqname=cursor.fetchone()['default_value']
+    seqname=seqname[9:-12]  # There should be a prettier way
 
     # AQUIRE CURRENT COUNTER FOR SEQUENCE
     # DELETE DEFAULT
-    SQL = '''alter table only "%s"."%s" alter COLUMN "%s" set default null;''' % (
+    SQL='''alter table only "%s"."%s" alter COLUMN "%s" set default null;''' % (
         schema, table, column)
     print_if_sql_only(SQL)
     exec_if_not_sql_only(SQL)
 
     # ADD IDENTITY
-    SQL = '''alter table only "%s"."%s" alter COLUMN "%s" ADD GENERATED by default as identity ;''' % (
+    SQL='''alter table only "%s"."%s" alter COLUMN "%s" ADD GENERATED by default as identity ;''' % (
         schema, table, column)
     print_if_sql_only(SQL)
     exec_if_not_sql_only(SQL)
 
     # UPDATE IDENTITY TO LAST KNOWN VALUE
-    #"SELECT last_value FROM %s"%( seqname )
-    SQL = """do
+    # "SELECT last_value FROM %s"%( seqname )
+    SQL="""do
 $F$
     declare
         new_max int;
@@ -138,16 +154,16 @@ $F$;""" % (seqname,
 
 
 def main():
-    parser = argparse.ArgumentParser()
+    parser=argparse.ArgumentParser()
     parser.add_argument(
-        "method", help="UPGRADE Sequences to Identity, DOWNGRADE Identity to Sequences")
+        "method", help="UPGRADE Sequences to Identity, DOWNGRADE Identity to Sequences, FIX to reset sequences to the current max +1")
     parser.add_argument("--list", action="store_true",
                         help="return affected columns and tables")
     parser.add_argument("--sql", action="store_true", default=False,
                         help="return sql-only")
     parser.add_argument("--debug",  action="store_true",
                         help="increase output verbosity")
-    args = parser.parse_args()
+    args=parser.parse_args()
     if args.method.lower() == 'upgrade':
         if args.list:
             for line in _get_affected_text(with_sequences=True, with_identity=False):
@@ -158,7 +174,8 @@ def main():
                       (x['schema'], x['table'], x['column']))
                 _migrate_to_identity(
                     x['schema'], x['table'], x['column'], sql_only=args.sql)
-
+    elif args.method.lower() == 'fix':
+        _fix_sequences()
     elif args.method.lower() == 'downgrade':
         print("TODO")
         sys.exit(1)

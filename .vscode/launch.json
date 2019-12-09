@@ -9,15 +9,14 @@
             "type": "python",
             "request": "launch",
             "program": "/workspaces/pg_sequence_to_identity/pg_sequence_to_identity/pg_sti.py",
-            "cwd": "/workspaces/pg_sequence_to_identity/",
+            "cwd": "/workspaces/pg_sequence_to_identity/pg_sequence_to_identity/",
             "console": "integratedTerminal",
             "args": [
-                "--help",
+                "fix"
             ],
             "env": {
                 "PYTHONPATH": "/workspaces/pg_sequence_to_identity"
             }
-        },
-
+        }
     ]
 }

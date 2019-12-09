@@ -7,4 +7,4 @@ RUN apt-get update; apt-get -y install python3-psycopg2 python3-autopep8 python3
 
 
 ENV PYTHONDONTWRITEBYTECODE=1
-ENV PYTHONPATH="/workspaces/pg_sequence_to_identity/pg_sequence_to_identity"
+ENV PATH="/workspaces/pg_sequence_to_identity/pg_sequence_to_identity:${PATH}"
