@@ -24,7 +24,7 @@ def _fix_sequences():
     connection = get_connection()
     with connection.cursor(cursor_factory=psycopg2.extras.DictCursor) as curs:
         for row in _get_affected(with_identity=True, with_sequences=True):
-            curs.execute("""SELECT coalesce( max( "%s" ), 0 ), pg_get_serial_sequence( '%s', '%s' ) FROM "%s"."%s" """
+            curs.execute("""SELECT coalesce( max( "%s" )+1, 1 ), pg_get_serial_sequence( '%s', '%s' ) FROM "%s"."%s" """
                 % (row['column'],
                 '"%s"."%s"' % (row['schema'], row['table']), row['column'],
                 row['schema'],row['table'])
