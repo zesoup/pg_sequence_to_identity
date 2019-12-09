@@ -113,10 +113,16 @@ $F$
     begin
         select last_value+1 into new_max FROM %s ;
         SELECT pg_get_serial_sequence( '"%s"."%s"', '%s' ) into new_sequence;
+
+        -- It seems wise to keep the last counter of the sequence. For this reason we're logging out to
+        -- postgresql's logfile.
+
+        RAISE LOG 'Sequence %s.%s.%s is being migrated to Identity. The old value was %s ', new_max ;
         execute format('alter sequence %s RESTART %s', new_sequence, new_max) ;
     end
 $F$;""" % (seqname,
            schema, table, column,
+           schema, table, column, '%',
            '%s', '%s')
 
     print_if_sql_only(SQL)

@@ -4,12 +4,11 @@
     // For more information, visit: https://go.microsoft.com/fwlink/?linkid=830387
     "version": "0.2.0",
     "configurations": [
-    
         {
             "name": "pg_sti",
             "type": "python",
             "request": "launch",
-            "program": "/workspaces/pg_sequence_to_identity/pg_sti.py",
+            "program": "/workspaces/pg_sequence_to_identity/pg_sequence_to_identity/pg_sti.py",
             "cwd": "/workspaces/pg_sequence_to_identity/",
             "console": "integratedTerminal",
             "args": [

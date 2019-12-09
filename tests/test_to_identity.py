@@ -1,8 +1,9 @@
-import pg_sti
+import pg_sequence_to_identity.pg_sti as pg_sti
+
 from tests.conftest import _insert_in_all
 
 def test_get_aliveness_and_reset(env):
-    """ Simple Ping tzo ensure the DB is reachable via conftest.py settings."""
+    """ Simple Ping to ensure the DB is reachable via conftest.py settings."""
     assert pg_sti.is_alive()
 
 def test_listing(env):

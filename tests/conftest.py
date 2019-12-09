@@ -2,7 +2,7 @@ import os
 import pytest
 import psycopg2
 
-from pg_sti import get_connection
+from pg_sequence_to_identity.pg_sti import get_connection
 
 def _insert_in_all():
     connection = get_connection()
