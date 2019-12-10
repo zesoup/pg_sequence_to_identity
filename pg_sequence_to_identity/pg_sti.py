@@ -127,8 +127,9 @@ $F$
         new_sequence text;
     begin
         select last_value+1 into new_max FROM %s ;
-        SELECT pg_get_serial_sequence( '"%s"."%s"', '%s' ) into new_sequence;
         DROP SEQUENCE %s;
+        SELECT pg_get_serial_sequence( '"%s"."%s"', '%s' ) into new_sequence;
+
         -- It seems wise to keep the last counter of the sequence. For this reason we're logging out to
         -- postgresql's logfile.
 
