@@ -22,6 +22,7 @@ usage: pg_sti [-h] [--list] [--sql] [--debug] method
 
 positional arguments:
   method      UPGRADE Sequences to Identity, DOWNGRADE Identity to Sequences
+              FIX to reset sequences to the current max +1
 
 optional arguments:
   -h, --help  show this help message and exit
