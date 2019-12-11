@@ -1,0 +1,10 @@
+image: "debian:buster"
+
+build:
+  stage: build
+  script:
+  - export DEBIAN_FRONTEND=noninteractive
+  - apt-get update; apt-get -y install python3-psycopg2 python3-autopep8 python3-pytest-cov python3-pytest git postgresql
+  - export PYTHONDONTWRITEBYTECODE=1
+  - export PYTHONPATH="."
+  - bash entrypoint.sh
