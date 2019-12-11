@@ -57,6 +57,7 @@ def setup_schema(connection):
 
 @pytest.fixture(scope='session')
 def env():
+    os.environ["PGDATABASE"]="postgres"
     conn = get_connection()
     setup_schema(conn)
     conn.commit()
