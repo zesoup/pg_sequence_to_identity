@@ -4,7 +4,10 @@ build:
   stage: build
   script:
   - export DEBIAN_FRONTEND=noninteractive
-  - apt-get update; apt-get -y install python3-psycopg2 python3-autopep8 python3-pytest-cov python3-pytest git postgresql
+  - apt-get update; apt-get -y install lsb-release curl ca-certificates gnupg; apt-get clean
+  - curl https://www.postgresql.org/media/keys/ACCC4CF8.asc | apt-key add -
+  - echo "deb http://apt.postgresql.org/pub/repos/apt/ buster-pgdg main" > /etc/apt/sources.list.d/pgdg.list
+  - apt-get update; apt-get -y install python3-psycopg2 python3-autopep8 python3-pytest-cov python3-pytest git postgresql-12 ; apt-get clean
   - export PYTHONDONTWRITEBYTECODE=1
   - export PYTHONPATH="."
   - bash entrypoint.sh
