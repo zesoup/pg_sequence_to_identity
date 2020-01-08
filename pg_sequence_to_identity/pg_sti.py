@@ -110,7 +110,7 @@ def _migrate_to_identity(schema, table, column, sql_only=False):
     SQL="""do
 $F$
     declare
-        new_max int;
+        new_max bigint;
         new_sequence text;
     begin
         select last_value+1 into new_max FROM %s ;
